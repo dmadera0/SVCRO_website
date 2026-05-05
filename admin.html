@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVCRO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===================== CSS VARIABLES ===================== */
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f0e8;
+      --yellow: #FFE135;
+      --orange: #FF4D00;
+      --red: #E8003D;
+      --cyan: #00E5FF;
+      --purple: #9B00FF;
+      --green: #00FF88;
+      --pink: #FF2D78;
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1a1a1a;
+      --border: rgba(245,240,232,0.07);
+      --text: #f5f0e8;
+      --text-dim: rgba(245,240,232,0.45);
+      --sidebar-w: 240px;
+      --topbar-h: 64px;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Space Mono', monospace;
+      --font-ui: 'Syne', sans-serif;
+    }
+
+    /* ===================== RESET ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; outline: none; font-family: var(--font-ui); }
+    input, select, textarea { font-family: var(--font-body); }
+
+    /* ===================== LOGIN SCREEN ===================== */
+    #loginScreen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 70% at 50% 50%, #1a0020 0%, var(--black) 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--yellow);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .login-logo {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--yellow);
+      letter-spacing: 0.12em;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .login-subtitle {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-field { margin-bottom: 16px; }
+    .login-field label {
+      display: block;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .login-field input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-field input:focus { border-color: var(--yellow); }
+    .login-btn {
+      width: 100%;
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 14px;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .login-btn:hover { background: var(--orange); color: var(--white); }
+    .login-hint {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    .login-hint span { color: var(--yellow); }
+    .login-error {
+      background: rgba(232,0,61,0.1);
+      border: 1px solid var(--red);
+      color: var(--red);
+      font-size: 12px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* ===================== ADMIN SHELL ===================== */
+    #adminShell { display: none; }
+    #adminShell.visible { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 50;
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      color: var(--yellow);
+      letter-spacing: 0.1em;
+    }
+    .sidebar-badge {
+      display: inline-block;
+      background: rgba(255,225,53,0.1);
+      border: 1px solid rgba(255,225,53,0.25);
+      color: var(--yellow);
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      margin-top: 4px;
+    }
+    .sidebar-nav { flex: 1; padding: 16px 0; }
+    .sidebar-section-label {
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 8px 20px 4px;
+      margin-top: 8px;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      border-left: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .sidebar-link:hover { color: var(--white); background: rgba(245,240,232,0.03); }
+    .sidebar-link.active { color: var(--yellow); border-left-color: var(--yellow); background: rgba(255,225,53,0.04); }
+    .sidebar-link .icon { font-size: 14px; width: 18px; text-align: center; }
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-avatar {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--yellow), var(--orange));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-username {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-logout {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: none;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .sidebar-logout:hover { color: var(--red); }
+
+    /* MAIN AREA */
+    .admin-main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      height: var(--topbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .topbar-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 0.06em;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+    .live-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+    .btn-view-site {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      transition: border-color 0.2s, color 0.2s;
+      display: inline-block;
+    }
+    .btn-view-site:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    /* PANELS */
+    .panel { display: none; padding: 32px; }
+    .panel.active { display: block; }
+
+    /* ===================== BUTTONS ===================== */
+    .btn-primary {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary:hover { background: var(--orange); color: var(--white); }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--yellow); color: var(--yellow); }
+    .btn-danger {
+      background: transparent;
+      border: 1px solid rgba(232,0,61,0.3);
+      color: var(--red);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      transition: background 0.2s;
+    }
+    .btn-danger:hover { background: rgba(232,0,61,0.1); }
+    .btn-edit {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-edit:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    /* ===================== FORMS ===================== */
+    .form-field { margin-bottom: 16px; }
+    .form-field label {
+      display: block;
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color: var(--yellow); }
+    .form-field textarea { resize: vertical; min-height: 80px; }
+    .form-field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23f5f0e8' opacity='0.4' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ===================== TABLES ===================== */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    thead th {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 10px 16px;
+      text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid rgba(245,240,232,0.03); }
+    tbody tr:hover { background: rgba(245,240,232,0.02); }
+    tbody td { padding: 12px 16px; font-size: 13px; vertical-align: middle; }
+    .td-actions { display: flex; gap: 8px; }
+    .product-swatch {
+      width: 40px; height: 40px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .product-thumb-cell { display: flex; align-items: center; gap: 12px; }
+    .product-thumb-name { font-weight: 700; }
+
+    /* ===================== STAT CARDS ===================== */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .stat-card.yellow::before { background: var(--yellow); }
+    .stat-card.orange::before { background: var(--orange); }
+    .stat-card.cyan::before { background: var(--cyan); }
+    .stat-card.pink::before { background: var(--pink); }
+    .stat-label {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .stat-card.yellow .stat-value { color: var(--yellow); }
+    .stat-card.orange .stat-value { color: var(--orange); }
+    .stat-card.cyan .stat-value { color: var(--cyan); }
+    .stat-card.pink .stat-value { color: var(--pink); }
+
+    /* ===================== DASHBOARD SPLIT ===================== */
+    .dashboard-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .dash-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .dash-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .activity-list { padding: 8px 0; }
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+    }
+    .activity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .activity-text { font-size: 12px; color: var(--text-dim); flex: 1; }
+    .activity-time {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      color: rgba(245,240,232,0.2);
+      white-space: nowrap;
+    }
+
+    /* ===================== PANEL HEADERS ===================== */
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+    }
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 12px;
+      padding: 8px 14px;
+      outline: none;
+      width: 240px;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--yellow); }
+
+    /* ===================== BADGE CHIPS ===================== */
+    .chip {
+      display: inline-block;
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+    }
+    .chip-new { background: rgba(0,255,136,0.15); color: var(--green); }
+    .chip-limited { background: rgba(255,77,0,0.15); color: var(--orange); }
+    .chip-sold { background: rgba(245,240,232,0.08); color: var(--text-dim); }
+    .chip-current { background: rgba(255,225,53,0.15); color: var(--yellow); }
+    .chip-available { background: rgba(0,229,255,0.1); color: var(--cyan); }
+    .chip-archive { background: rgba(245,240,232,0.05); color: var(--text-dim); }
+    .chip-coming { background: rgba(155,0,255,0.15); color: var(--purple); }
+
+    /* ===================== COLLECTIONS PANEL ===================== */
+    .coll-list { display: flex; flex-direction: column; gap: 12px; }
+    .coll-admin-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .coll-admin-info { flex: 1; }
+    .coll-admin-name {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .coll-admin-season {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .coll-admin-desc { font-size: 12px; color: var(--text-dim); }
+    .coll-admin-meta {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      color: rgba(245,240,232,0.3);
+      margin-top: 6px;
+      letter-spacing: 0.1em;
+    }
+    .coll-admin-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+
+    /* ===================== MEDIA PANEL ===================== */
+    .upload-area {
+      border: 2px dashed rgba(255,225,53,0.25);
+      padding: 48px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-area:hover { border-color: var(--yellow); background: rgba(255,225,53,0.03); }
+    .upload-area .upload-icon { font-size: 3rem; margin-bottom: 12px; }
+    .upload-area p {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .media-thumb {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1;
+    }
+    .media-thumb-bg {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      position: absolute;
+      inset: 0;
+    }
+    .media-thumb-hover {
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,10,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .media-thumb:hover .media-thumb-hover { opacity: 1; }
+
+    /* ===================== CONTENT PANEL / ACCORDION ===================== */
+    .accordion { border: 1px solid var(--border); margin-bottom: 12px; }
+    .accordion-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      transition: background 0.15s;
+    }
+    .accordion-header:hover { background: rgba(245,240,232,0.02); }
+    .accordion-arrow {
+      font-size: 10px;
+      transition: transform 0.2s;
+      color: var(--text-dim);
+    }
+    .accordion.open .accordion-arrow { transform: rotate(180deg); }
+    .accordion-body { display: none; padding: 20px; border-top: 1px solid var(--border); }
+    .accordion.open .accordion-body { display: block; }
+
+    /* ===================== PRESS PANEL ===================== */
+    .press-outlet-cell {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+    }
+    .press-quote-cell { font-style: italic; color: var(--text-dim); max-width: 400px; }
+
+    /* ===================== SETTINGS PANEL ===================== */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .settings-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .settings-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .settings-card-body { padding: 20px; }
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .color-row label {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      width: 70px;
+      flex-shrink: 0;
+    }
+    .color-row input[type="color"] {
+      width: 36px; height: 28px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      padding: 2px;
+    }
+    .color-chips {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .color-chip {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+    }
+
+    /* ===================== MODAL ===================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,10,0.85);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--yellow);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+    }
+    .modal-close {
+      background: none;
+      color: var(--text-dim);
+      font-size: 1.2rem;
+      padding: 4px 8px;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--red); }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* ===================== TOAST ===================== */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--green);
+      color: var(--black);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 14px 24px;
+      z-index: 9999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ===================== MISC ===================== */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">SVCRO</div>
+    <div class="login-subtitle">Admin Dashboard</div>
+    <div class="login-error" id="loginError">Invalid credentials. Try again.</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="admin" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Login</button>
+    <div class="login-hint">Demo: <span>admin</span> / <span>svcro2025</span></div>
+  </div>
+</div>
+
+<!-- ==================== ADMIN SHELL ==================== -->
+<div id="adminShell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">SVCRO</div>
+      <div class="sidebar-badge">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="#" class="sidebar-link active" onclick="showPanel('dashboard',this)"><span class="icon">📊</span> Dashboard</a>
+      <a href="#" class="sidebar-link" onclick="showPanel('products',this)"><span class="icon">👕</span> Products</a>
+      <a href="#" class="sidebar-link" onclick="showPanel('collections',this)"><span class="icon">📦</span> Collections</a>
+      <div class="sidebar-section-label">Content</div>
+      <a href="#" class="sidebar-link" onclick="showPanel('media',this)"><span class="icon">🖼️</span> Media</a>
+      <a href="#" class="sidebar-link" onclick="showPanel('content',this)"><span class="icon">📝</span> Page Content</a>
+      <a href="#" class="sidebar-link" onclick="showPanel('press',this)"><span class="icon">📰</span> Press</a>
+      <div class="sidebar-section-label">Config</div>
+      <a href="#" class="sidebar-link" onclick="showPanel('settings',this)"><span class="icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">👤</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-username">admin</div>
+        <button class="sidebar-logout" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div> Live</div>
+        <a href="index.html" class="btn-view-site" target="_blank">View Site →</a>
+      </div>
+    </div>
+
+    <!-- ==================== DASHBOARD PANEL ==================== -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="stats-row">
+        <div class="stat-card yellow">
+          <div class="stat-label">Total Products</div>
+          <div class="stat-value" id="dashProdCount">12</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Collections</div>
+          <div class="stat-value">4</div>
+        </div>
+        <div class="stat-card cyan">
+          <div class="stat-label">Media Files</div>
+          <div class="stat-value">9</div>
+        </div>
+        <div class="stat-card pink">
+          <div class="stat-label">Press Mentions</div>
+          <div class="stat-value" id="dashPressCount">5</div>
+        </div>
+      </div>
+      <div class="dashboard-split">
+        <div class="dash-card">
+          <div class="dash-card-header">Recent Products</div>
+          <div class="table-wrap">
+            <table id="dashProductTable">
+              <thead><tr><th>Product</th><th>Price</th><th>Badge</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">Activity Feed</div>
+          <div class="activity-list" id="activityFeed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PRODUCTS PANEL ==================== -->
+    <div id="panel-products" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">PRODUCTS</div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <input type="text" class="search-input" placeholder="Search products..." oninput="searchProducts(this.value)" />
+          <button class="btn-primary" onclick="openProductModal()">+ Add Product</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Category</th>
+              <th>Badge</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== COLLECTIONS PANEL ==================== -->
+    <div id="panel-collections" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">COLLECTIONS</div>
+        <button class="btn-primary" onclick="openCollModal()">+ Add Collection</button>
+      </div>
+      <div class="coll-list" id="collList"></div>
+    </div>
+
+    <!-- ==================== MEDIA PANEL ==================== -->
+    <div id="panel-media" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">MEDIA</div>
+        <button class="btn-primary" onclick="openModal('mediaModal')">+ Upload Media</button>
+      </div>
+      <div class="upload-area" ondragover="event.preventDefault()" ondrop="event.preventDefault()">
+        <div class="upload-icon">📁</div>
+        <p>Drag & drop files here, or click to upload</p>
+        <!-- TODO: wire to S3 PutObject API via pre-signed URL -->
+        <button class="btn-secondary" onclick="openModal('mediaModal')">Choose Files</button>
+      </div>
+      <div class="media-grid" id="mediaGrid"></div>
+    </div>
+
+    <!-- ==================== CONTENT PANEL ==================== -->
+    <div id="panel-content" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">PAGE CONTENT</div>
+        <button class="btn-primary" onclick="saveContent()">Save Changes</button>
+      </div>
+
+      <div class="accordion open" id="acc-hero">
+        <div class="accordion-header" onclick="toggleAcc('acc-hero')">
+          Homepage Hero <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-row">
+            <div class="form-field"><label>Eyebrow Text</label><input type="text" value="SS'25 Drop — Now Available" /></div>
+            <div class="form-field"><label>Hero Line 1</label><input type="text" value="WEAR" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>Hero Line 2</label><input type="text" value="LOUD" /></div>
+            <div class="form-field"><label>Subtitle</label><input type="text" value="Not just clothing. A declaration of intent." /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>CTA 1 Text</label><input type="text" value="Shop the Drop" /></div>
+            <div class="form-field"><label>CTA 2 Text</label><input type="text" value="View Collections" /></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" id="acc-ticker">
+        <div class="accordion-header" onclick="toggleAcc('acc-ticker')">
+          Marquee / Ticker <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-field"><label>Ticker Message</label><input type="text" value="SS'25 DROP — LOUD SEASON — AVAILABLE NOW ★ LIMITED UNITS REMAINING" /></div>
+          <div class="form-field"><label>Marquee Items (comma separated)</label><input type="text" value="Free Shipping on Orders Over $100, New Drop Every Season, @svcroofficial, Limited Edition Always" /></div>
+        </div>
+      </div>
+
+      <div class="accordion" id="acc-statement">
+        <div class="accordion-header" onclick="toggleAcc('acc-statement')">
+          Statement Block <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-field"><label>Statement Text</label><input type="text" value="NOT JUST CLOTHES. A DECLARATION. WEAR WHO YOU ARE." /></div>
+          <div class="form-field"><label>Highlighted Phrase</label><input type="text" value="A DECLARATION." /></div>
+        </div>
+      </div>
+
+      <div class="accordion" id="acc-about">
+        <div class="accordion-header" onclick="toggleAcc('acc-about')">
+          About Page <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-row">
+            <div class="form-field"><label>Tagline Line 1</label><input type="text" value="BUILT" /></div>
+            <div class="form-field"><label>Tagline Line 2</label><input type="text" value="DIFFERENT." /></div>
+          </div>
+          <div class="form-field"><label>Brand Story Paragraph 1</label><textarea>SVCRO was built in the intersection of art, culture, and streetwear — a brand that treats clothing as canvas and the streets as a gallery.</textarea></div>
+          <div class="form-field"><label>Brand Story Paragraph 2</label><textarea>We started with a single idea: that what you wear is an extension of who you are, and that settling for the ordinary is a choice you should never have to make.</textarea></div>
+        </div>
+      </div>
+
+      <div class="accordion" id="acc-team">
+        <div class="accordion-header" onclick="toggleAcc('acc-team')">
+          Team Members <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-row">
+            <div class="form-field"><label>Member 1 Name</label><input type="text" value="Marcus V." /></div>
+            <div class="form-field"><label>Member 1 Role</label><input type="text" value="Creative Director" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>Member 2 Name</label><input type="text" value="Jordan K." /></div>
+            <div class="form-field"><label>Member 2 Role</label><input type="text" value="Head of Art" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>Member 3 Name</label><input type="text" value="Aaliyah T." /></div>
+            <div class="form-field"><label>Member 3 Role</label><input type="text" value="Brand Manager" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>Member 4 Name</label><input type="text" value="Devon R." /></div>
+            <div class="form-field"><label>Member 4 Role</label><input type="text" value="Production Lead" /></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" id="acc-newsletter">
+        <div class="accordion-header" onclick="toggleAcc('acc-newsletter')">
+          Newsletter CTA <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-row">
+            <div class="form-field"><label>Headline</label><input type="text" value="JOIN THE MOVEMENT" /></div>
+            <div class="form-field"><label>Button Text</label><input type="text" value="Subscribe" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PRESS PANEL ==================== -->
+    <div id="panel-press" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">PRESS</div>
+        <button class="btn-primary" onclick="openPressModal()">+ Add Feature</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Outlet</th><th>Quote</th><th>Date</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="pressTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== SETTINGS PANEL ==================== -->
+    <div id="panel-settings" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">SETTINGS</div>
+        <button class="btn-primary" onclick="saveContent()">Save Changes</button>
+      </div>
+      <div class="settings-grid">
+
+        <div class="settings-card">
+          <div class="settings-card-header">Brand Settings</div>
+          <div class="settings-card-body">
+            <div class="form-field"><label>Brand Name</label><input type="text" value="SVCRO" /></div>
+            <div class="form-field"><label>Tagline</label><input type="text" value="Wear Loud. Be Heard." /></div>
+            <div class="form-field"><label>Instagram Handle</label><input type="text" value="@svcroofficial" /></div>
+            <div class="form-field"><label>Contact Email</label><input type="email" value="hello@svcro.com" /></div>
+            <div class="form-field"><label>Free Shipping Threshold ($)</label><input type="number" value="100" /></div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">Brand Colors</div>
+          <div class="settings-card-body">
+            <div class="color-row"><label>Primary</label><input type="color" value="#FFE135" /></div>
+            <div class="color-row"><label>Secondary</label><input type="color" value="#FF4D00" /></div>
+            <div class="color-row"><label>Accent</label><input type="color" value="#E8003D" /></div>
+            <div class="color-chips">
+              <div class="color-chip" style="background:#FFE135;"></div>
+              <div class="color-chip" style="background:#FF4D00;"></div>
+              <div class="color-chip" style="background:#E8003D;"></div>
+              <div class="color-chip" style="background:#00E5FF;"></div>
+              <div class="color-chip" style="background:#9B00FF;"></div>
+              <div class="color-chip" style="background:#00FF88;"></div>
+              <div class="color-chip" style="background:#FF2D78;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">AWS / Hosting</div>
+          <div class="settings-card-body">
+            <!-- TODO: replace with real AWS SDK calls when backend is wired -->
+            <div class="form-field"><label>S3 Bucket Name</label><input type="text" placeholder="svcro-website-prod" /></div>
+            <div class="form-field"><label>CloudFront Distribution ID</label><input type="text" placeholder="E1EXAMPLE" /></div>
+            <div class="form-field"><label>Custom Domain</label><input type="text" placeholder="svcro.com" /></div>
+            <div class="form-field"><label>Media Bucket</label><input type="text" placeholder="svcro-media" /></div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">Integrations</div>
+          <div class="settings-card-body">
+            <!-- TODO: wire API keys to respective SDKs -->
+            <div class="form-field"><label>Klaviyo API Key</label><input type="text" placeholder="pk_live_..." /></div>
+            <div class="form-field"><label>Google Analytics ID</label><input type="text" placeholder="G-XXXXXXXXXX" /></div>
+            <div class="form-field"><label>Instagram Access Token</label><input type="text" placeholder="IGQVJWb..." /></div>
+            <div class="form-field">
+              <label>Payment Gateway</label>
+              <select>
+                <option>None (Showcase Only)</option>
+                <option>Stripe</option>
+                <option>Shopify</option>
+                <option>Square</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /admin-main -->
+</div><!-- /adminShell -->
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal" onclick="outsideClose(event,'productModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="productModalTitle">ADD PRODUCT</div>
+      <button class="modal-close" onclick="closeModal('productModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editProductId" value="" />
+      <div class="form-row">
+        <div class="form-field"><label>Product Name</label><input type="text" id="pName" placeholder="e.g. Oversized Graphic Tee" /></div>
+        <div class="form-field"><label>Price</label><input type="text" id="pPrice" placeholder="$58" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Category</label>
+          <select id="pCat">
+            <option value="tops">Tops</option>
+            <option value="bottoms">Bottoms</option>
+            <option value="headwear">Headwear</option>
+            <option value="accessories">Accessories</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Badge</label>
+          <select id="pBadge">
+            <option value="">None</option>
+            <option value="new">New</option>
+            <option value="limited">Limited</option>
+            <option value="sold">Sold Out</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Emoji Icon</label><input type="text" id="pIcon" placeholder="👕" /></div>
+        <div class="form-field">
+          <label>Gradient Style</label>
+          <select id="pGrad">
+            <option value="linear-gradient(135deg, var(--orange), var(--yellow))">Orange → Yellow</option>
+            <option value="linear-gradient(135deg, var(--cyan), var(--purple))">Cyan → Purple</option>
+            <option value="linear-gradient(135deg, var(--green), var(--cyan))">Green → Cyan</option>
+            <option value="linear-gradient(135deg, #1a1a1a, #3a3a3a)">Dark Grey</option>
+            <option value="linear-gradient(135deg, var(--pink), var(--red))">Pink → Red</option>
+            <option value="linear-gradient(135deg, var(--purple), var(--pink))">Purple → Pink</option>
+            <option value="linear-gradient(135deg, var(--orange), var(--red))">Orange → Red</option>
+            <option value="linear-gradient(135deg, var(--yellow), var(--orange))">Yellow → Orange</option>
+            <option value="linear-gradient(135deg, var(--red), var(--purple))">Red → Purple</option>
+            <option value="linear-gradient(135deg, var(--cyan), var(--green))">Cyan → Green</option>
+            <option value="linear-gradient(135deg, var(--yellow), var(--green))">Yellow → Green</option>
+            <option value="linear-gradient(135deg, var(--pink), var(--cyan))">Pink → Cyan</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label>Description</label><textarea id="pDesc" placeholder="Short product description..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Collection Modal -->
+<div class="modal-overlay" id="collModal" onclick="outsideClose(event,'collModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="collModalTitle">ADD COLLECTION</div>
+      <button class="modal-close" onclick="closeModal('collModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editCollId" value="" />
+      <div class="form-row">
+        <div class="form-field"><label>Collection Name</label><input type="text" id="cName" placeholder="e.g. LOUD SEASON" /></div>
+        <div class="form-field"><label>Season / Label</label><input type="text" id="cSeason" placeholder="SS'25" /></div>
+      </div>
+      <div class="form-field"><label>Description</label><textarea id="cDesc" placeholder="Collection description..."></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label>Piece Count</label><input type="number" id="cCount" placeholder="24" /></div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="cStatus">
+            <option value="current">Current</option>
+            <option value="available">Available</option>
+            <option value="archive">Archive</option>
+            <option value="coming">Coming Soon</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('collModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveCollection()">Save Collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- Media Modal -->
+<div class="modal-overlay" id="mediaModal" onclick="outsideClose(event,'mediaModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">UPLOAD MEDIA</div>
+      <button class="modal-close" onclick="closeModal('mediaModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label>Media Type</label>
+        <select><option>Photo</option><option>Video</option><option>Lookbook</option></select>
+      </div>
+      <div class="upload-area" style="margin-bottom:16px;">
+        <!-- TODO: implement S3 pre-signed URL upload -->
+        <div class="upload-icon">📷</div>
+        <p>Click or drag file here</p>
+      </div>
+      <div class="form-field"><label>Alt Text / Caption</label><input type="text" placeholder="Describe this media..." /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('mediaModal')">Cancel</button>
+      <button class="btn-primary" onclick="closeModal('mediaModal');showToast('Media uploaded successfully')">Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Press Modal -->
+<div class="modal-overlay" id="pressModal" onclick="outsideClose(event,'pressModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="pressModalTitle">ADD PRESS FEATURE</div>
+      <button class="modal-close" onclick="closeModal('pressModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editPressId" value="" />
+      <div class="form-row">
+        <div class="form-field"><label>Outlet Name</label><input type="text" id="pressOutlet" placeholder="HYPEBEAST" /></div>
+        <div class="form-field"><label>Date</label><input type="text" id="pressDate" placeholder="Apr 2025" /></div>
+      </div>
+      <div class="form-field"><label>Quote</label><textarea id="pressQuote" placeholder="Their exact quote..."></textarea></div>
+      <div class="form-field"><label>Article URL</label><input type="url" id="pressUrl" placeholder="https://..." /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('pressModal')">Cancel</button>
+      <button class="btn-primary" onclick="savePress()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal" onclick="outsideClose(event,'deleteModal')">
+  <div class="modal" style="max-width:380px; border-top-color: var(--red);">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red);">CONFIRM DELETE</div>
+      <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-dim);font-size:13px;" id="deleteMessage">Are you sure you want to delete this item? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn-danger" id="deleteConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">Changes saved successfully</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+  /* ---- AUTH ---- */
+  function doLogin() {
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    const err = document.getElementById('loginError');
+    if (u === 'admin' && p === 'svcro2025') {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminShell').classList.add('visible');
+      initAdmin();
+    } else {
+      err.style.display = 'block';
+    }
+  }
+  function doLogout() {
+    document.getElementById('adminShell').classList.remove('visible');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  }
+
+  /* ---- PANEL ROUTING ---- */
+  const panelTitles = {
+    dashboard: 'Dashboard',
+    products: 'Products',
+    collections: 'Collections',
+    media: 'Media',
+    content: 'Page Content',
+    press: 'Press',
+    settings: 'Settings',
+  };
+  function showPanel(id, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(a => a.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    if (el) el.classList.add('active');
+    document.getElementById('topbarTitle').textContent = panelTitles[id] || id;
+  }
+
+  /* ---- PRODUCTS DATA ---- */
+  let products = [
+    { id:1,  name:'Oversized Graphic Tee',  price:'$58',  cat:'tops',        badge:'new',     icon:'👕', grad:'linear-gradient(135deg, var(--orange), var(--yellow))',  desc:'Relaxed fit, bold graphic front.' },
+    { id:2,  name:'SVCRO 6-Panel Cap',       price:'$45',  cat:'headwear',    badge:'limited', icon:'🧢', grad:'linear-gradient(135deg, var(--cyan), var(--purple))',     desc:'Structured 6-panel, embroidered logo.' },
+    { id:3,  name:'Track Jacket Vol.1',       price:'$120', cat:'tops',        badge:'new',     icon:'🧥', grad:'linear-gradient(135deg, var(--green), var(--cyan))',      desc:'Retro cut, color-block panels.' },
+    { id:4,  name:'Cargo Pants Wide Leg',     price:'$95',  cat:'bottoms',     badge:'',        icon:'👖', grad:'linear-gradient(135deg, #1a1a1a, #3a3a3a)',              desc:'Wide leg cargo with utility pockets.' },
+    { id:5,  name:'SVCRO x Drop Vol.1',       price:'$180', cat:'accessories', badge:'limited', icon:'🎒', grad:'linear-gradient(135deg, var(--pink), var(--red))',        desc:'Limited collab accessory piece.' },
+    { id:6,  name:'Logo Balaclava',           price:'$38',  cat:'accessories', badge:'new',     icon:'🎭', grad:'linear-gradient(135deg, var(--purple), var(--pink))',     desc:'Knit stretch balaclava, one size.' },
+    { id:7,  name:'Washed Hoodie',            price:'$110', cat:'tops',        badge:'',        icon:'🔥', grad:'linear-gradient(135deg, var(--orange), var(--red))',      desc:'Heavyweight washed french terry.' },
+    { id:8,  name:'Snap-Back Cap',            price:'$40',  cat:'headwear',    badge:'',        icon:'🧢', grad:'linear-gradient(135deg, var(--yellow), var(--orange))',   desc:'Flat brim snap-back, embroidered.' },
+    { id:9,  name:'Graphic Long-Sleeve',      price:'$72',  cat:'tops',        badge:'sold',    icon:'👕', grad:'linear-gradient(135deg, var(--red), var(--purple))',      desc:'Sold out. Check back next drop.' },
+    { id:10, name:'Baggy Cargo Shorts',       price:'$85',  cat:'bottoms',     badge:'',        icon:'🩳', grad:'linear-gradient(135deg, var(--cyan), var(--green))',      desc:'Baggy fit cargo shorts, multiple pockets.' },
+    { id:11, name:'Tote Bag LOUD',            price:'$35',  cat:'accessories', badge:'new',     icon:'👜', grad:'linear-gradient(135deg, var(--yellow), var(--green))',    desc:'Heavy canvas tote, LOUD print.' },
+    { id:12, name:'Bucket Hat Reversible',    price:'$52',  cat:'headwear',    badge:'limited', icon:'🎩', grad:'linear-gradient(135deg, var(--pink), var(--cyan))',       desc:'Reversible bucket hat, two looks.' },
+  ];
+  let nextProductId = 13;
+
+  function renderProductsTable(list) {
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = list.map(p => `
+      <tr>
+        <td>
+          <div class="product-thumb-cell">
+            <div class="product-swatch" style="background:${p.grad};">${p.icon}</div>
+            <span class="product-thumb-name">${p.name}</span>
+          </div>
+        </td>
+        <td>${p.price}</td>
+        <td style="text-transform:capitalize;">${p.cat}</td>
+        <td>${p.badge ? `<span class="chip chip-${p.badge}">${p.badge}</span>` : '—'}</td>
+        <td><div class="td-actions">
+          <button class="btn-edit" onclick="openProductModal(${p.id})">Edit</button>
+          <button class="btn-danger" onclick="confirmDelete('product',${p.id})">Delete</button>
+        </div></td>
+      </tr>
+    `).join('');
+  }
+
+  function searchProducts(q) {
+    const filtered = products.filter(p => p.name.toLowerCase().includes(q.toLowerCase()));
+    renderProductsTable(filtered);
+  }
+
+  function openProductModal(id) {
+    document.getElementById('editProductId').value = id || '';
+    if (id) {
+      const p = products.find(x => x.id === id);
+      document.getElementById('productModalTitle').textContent = 'EDIT PRODUCT';
+      document.getElementById('pName').value = p.name;
+      document.getElementById('pPrice').value = p.price;
+      document.getElementById('pCat').value = p.cat;
+      document.getElementById('pBadge').value = p.badge;
+      document.getElementById('pIcon').value = p.icon;
+      document.getElementById('pGrad').value = p.grad;
+      document.getElementById('pDesc').value = p.desc;
+    } else {
+      document.getElementById('productModalTitle').textContent = 'ADD PRODUCT';
+      document.getElementById('pName').value = '';
+      document.getElementById('pPrice').value = '';
+      document.getElementById('pCat').value = 'tops';
+      document.getElementById('pBadge').value = '';
+      document.getElementById('pIcon').value = '';
+      document.getElementById('pGrad').value = 'linear-gradient(135deg, var(--orange), var(--yellow))';
+      document.getElementById('pDesc').value = '';
+    }
+    openModal('productModal');
+  }
+
+  function saveProduct() {
+    const id = document.getElementById('editProductId').value;
+    const data = {
+      name:  document.getElementById('pName').value,
+      price: document.getElementById('pPrice').value,
+      cat:   document.getElementById('pCat').value,
+      badge: document.getElementById('pBadge').value,
+      icon:  document.getElementById('pIcon').value || '👕',
+      grad:  document.getElementById('pGrad').value,
+      desc:  document.getElementById('pDesc').value,
+    };
+    if (id) {
+      const idx = products.findIndex(p => p.id === parseInt(id));
+      products[idx] = { ...products[idx], ...data };
+    } else {
+      products.push({ id: nextProductId++, ...data });
+    }
+    renderProductsTable(products);
+    renderDashboard();
+    closeModal('productModal');
+    showToast('Product saved successfully');
+  }
+
+  /* ---- COLLECTIONS DATA ---- */
+  let collections = [
+    { id:1, name:'LOUD SEASON',     season:"SS'25",       desc:'Our boldest collection yet. Built for those who refuse to be ignored.',                  count:24, status:'current' },
+    { id:2, name:'NEON NOIR',       season:"FW'24",       desc:'Dark foundations lit by electric accents. Heavy fleece and night-scene colorways.',       count:20, status:'available' },
+    { id:3, name:'CORE ESSENTIALS', season:'Year-Round',  desc:'The backbone of the wardrobe. Stripped back, high quality, built to last.',              count:18, status:'available' },
+    { id:4, name:'SIGNAL FIRE',     season:"SS'24 Archive", desc:'The archive piece that started it all. Flame-coded colorways, experimental cuts.',       count:10, status:'archive' },
+  ];
+  let nextCollId = 5;
+
+  function renderCollections() {
+    const list = document.getElementById('collList');
+    list.innerHTML = collections.map(c => `
+      <div class="coll-admin-card">
+        <div class="coll-admin-info">
+          <div class="coll-admin-name">${c.name}</div>
+          <div class="coll-admin-season">${c.season}</div>
+          <div class="coll-admin-desc">${c.desc}</div>
+          <div class="coll-admin-meta">${c.count} pieces</div>
+        </div>
+        <div class="coll-admin-actions">
+          <span class="chip chip-${c.status}">${c.status}</span>
+          <button class="btn-edit" onclick="openCollModal(${c.id})">Edit</button>
+          <button class="btn-danger" onclick="confirmDelete('collection',${c.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openCollModal(id) {
+    document.getElementById('editCollId').value = id || '';
+    if (id) {
+      const c = collections.find(x => x.id === id);
+      document.getElementById('collModalTitle').textContent = 'EDIT COLLECTION';
+      document.getElementById('cName').value = c.name;
+      document.getElementById('cSeason').value = c.season;
+      document.getElementById('cDesc').value = c.desc;
+      document.getElementById('cCount').value = c.count;
+      document.getElementById('cStatus').value = c.status;
+    } else {
+      document.getElementById('collModalTitle').textContent = 'ADD COLLECTION';
+      ['cName','cSeason','cDesc','cCount'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('cStatus').value = 'current';
+    }
+    openModal('collModal');
+  }
+
+  function saveCollection() {
+    const id = document.getElementById('editCollId').value;
+    const data = {
+      name:   document.getElementById('cName').value,
+      season: document.getElementById('cSeason').value,
+      desc:   document.getElementById('cDesc').value,
+      count:  parseInt(document.getElementById('cCount').value) || 0,
+      status: document.getElementById('cStatus').value,
+    };
+    if (id) {
+      const idx = collections.findIndex(c => c.id === parseInt(id));
+      collections[idx] = { ...collections[idx], ...data };
+    } else {
+      collections.push({ id: nextCollId++, ...data });
+    }
+    renderCollections();
+    closeModal('collModal');
+    showToast('Collection saved successfully');
+  }
+
+  /* ---- PRESS DATA ---- */
+  let pressItems = [
+    { id:1, outlet:'HYPEBEAST',    quote:"SVCRO's LOUD SEASON collection signals a new era for independent streetwear — brash, unapologetic, and impossible to ignore.", date:'Apr 2025', url:'' },
+    { id:2, outlet:'COMPLEX',      quote:'The brand that refuses to play by anyone else\'s rules. SVCRO\'s latest drop sold out in under 48 hours — and we completely understand why.', date:'Mar 2025', url:'' },
+    { id:3, outlet:'HIGHSNOBIETY', quote:'Maximalism done right. SVCRO finds the rare balance between wearable and visually overwhelming.', date:'Feb 2025', url:'' },
+    { id:4, outlet:'VOGUE',        quote:"Street culture's most vibrant new voice. SVCRO is building something that transcends category — this is fashion as protest, as art, as identity.", date:'Jan 2025', url:'' },
+    { id:5, outlet:'DAZED',        quote:"We've been following SVCRO since Signal Fire, and the trajectory has been nothing short of spectacular.", date:'Nov 2024', url:'' },
+  ];
+  let nextPressId = 6;
+
+  function renderPress() {
+    document.getElementById('pressTableBody').innerHTML = pressItems.map(p => `
+      <tr>
+        <td class="press-outlet-cell">${p.outlet}</td>
+        <td class="press-quote-cell">"${p.quote}"</td>
+        <td style="white-space:nowrap;">${p.date}</td>
+        <td><button class="btn-danger" onclick="confirmDelete('press',${p.id})">Delete</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function openPressModal() {
+    ['pressOutlet','pressDate','pressQuote','pressUrl'].forEach(id => document.getElementById(id).value = '');
+    openModal('pressModal');
+  }
+
+  function savePress() {
+    pressItems.push({
+      id: nextPressId++,
+      outlet: document.getElementById('pressOutlet').value,
+      date:   document.getElementById('pressDate').value,
+      quote:  document.getElementById('pressQuote').value,
+      url:    document.getElementById('pressUrl').value,
+    });
+    renderPress();
+    document.getElementById('dashPressCount').textContent = pressItems.length;
+    closeModal('pressModal');
+    showToast('Press feature added');
+  }
+
+  /* ---- MEDIA ---- */
+  const mediaItems = [
+    { grad:'linear-gradient(135deg, var(--orange), var(--yellow))', icon:'🔥' },
+    { grad:'linear-gradient(135deg, var(--purple), var(--pink))', icon:'👗' },
+    { grad:'linear-gradient(135deg, var(--cyan), var(--green))', icon:'✨' },
+    { grad:'linear-gradient(135deg, var(--red), var(--orange))', icon:'🎨' },
+    { grad:'linear-gradient(135deg, var(--yellow), var(--green))', icon:'👟' },
+    { grad:'linear-gradient(135deg, var(--pink), var(--red))', icon:'🧢' },
+    { grad:'linear-gradient(135deg, var(--purple), var(--cyan))', icon:'🎭' },
+    { grad:'linear-gradient(135deg, var(--orange), var(--pink))', icon:'👕' },
+    { grad:'linear-gradient(135deg, var(--green), var(--cyan))', icon:'🧥' },
+  ];
+  function renderMedia() {
+    document.getElementById('mediaGrid').innerHTML = mediaItems.map(m => `
+      <div class="media-thumb">
+        <div class="media-thumb-bg" style="background:${m.grad};">${m.icon}</div>
+        <div class="media-thumb-hover">
+          <button class="btn-edit" style="padding:6px 10px;">View</button>
+          <button class="btn-danger" style="padding:6px 10px;">Del</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ---- DASHBOARD ---- */
+  const activities = [
+    { color: 'var(--yellow)',  text: 'New product added: Bucket Hat Reversible',  time: '2m ago' },
+    { color: 'var(--green)',   text: 'Collection updated: LOUD SEASON',            time: '1h ago' },
+    { color: 'var(--cyan)',    text: 'Media uploaded: Campaign shoot, 6 images',   time: '3h ago' },
+    { color: 'var(--orange)',  text: 'Press feature added: HYPEBEAST',             time: '1d ago' },
+    { color: 'var(--pink)',    text: 'Settings updated: brand tagline changed',    time: '2d ago' },
+  ];
+
+  function renderDashboard() {
+    // Stat count
+    document.getElementById('dashProdCount').textContent = products.length;
+    document.getElementById('dashPressCount').textContent = pressItems.length;
+
+    // Recent products table
+    const rows = products.slice(-5).reverse();
+    document.querySelector('#dashProductTable tbody').innerHTML = rows.map(p => `
+      <tr>
+        <td>
+          <div class="product-thumb-cell">
+            <div class="product-swatch" style="background:${p.grad};">${p.icon}</div>
+            <span>${p.name}</span>
+          </div>
+        </td>
+        <td>${p.price}</td>
+        <td>${p.badge ? `<span class="chip chip-${p.badge}">${p.badge}</span>` : '—'}</td>
+      </tr>
+    `).join('');
+
+    // Activity feed
+    document.getElementById('activityFeed').innerHTML = activities.map(a => `
+      <div class="activity-item">
+        <div class="activity-dot" style="background:${a.color};"></div>
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>
+    `).join('');
+  }
+
+  /* ---- DELETE ---- */
+  let pendingDelete = null;
+  function confirmDelete(type, id) {
+    const msgs = {
+      product:    'Are you sure you want to delete this product? This action cannot be undone.',
+      collection: 'Are you sure you want to delete this collection? This action cannot be undone.',
+      press:      'Are you sure you want to delete this press feature?',
+    };
+    document.getElementById('deleteMessage').textContent = msgs[type];
+    document.getElementById('deleteConfirmBtn').onclick = () => {
+      if (type === 'product') {
+        products = products.filter(p => p.id !== id);
+        renderProductsTable(products);
+        renderDashboard();
+      } else if (type === 'collection') {
+        collections = collections.filter(c => c.id !== id);
+        renderCollections();
+      } else if (type === 'press') {
+        pressItems = pressItems.filter(p => p.id !== id);
+        renderPress();
+        document.getElementById('dashPressCount').textContent = pressItems.length;
+      }
+      closeModal('deleteModal');
+      showToast('Item deleted');
+    };
+    openModal('deleteModal');
+  }
+
+  /* ---- MODAL HELPERS ---- */
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  function outsideClose(e, id) {
+    if (e.target.id === id) closeModal(id);
+  }
+
+  /* ---- ACCORDION ---- */
+  function toggleAcc(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  /* ---- TOAST ---- */
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function saveContent() {
+    // TODO: persist to S3 JSON file via API
+    showToast('Changes saved successfully');
+  }
+
+  /* ---- INIT ---- */
+  function initAdmin() {
+    renderProductsTable(products);
+    renderCollections();
+    renderPress();
+    renderMedia();
+    renderDashboard();
+  }
+</script>
+</body>
+</html>

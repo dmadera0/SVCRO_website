@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVCRO — Wear Loud</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===================== CSS VARIABLES ===================== */
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f0e8;
+      --yellow: #FFE135;
+      --orange: #FF4D00;
+      --red: #E8003D;
+      --cyan: #00E5FF;
+      --purple: #9B00FF;
+      --green: #00FF88;
+      --pink: #FF2D78;
+      --nav-h: 72px;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Space Mono', monospace;
+      --font-ui: 'Syne', sans-serif;
+    }
+
+    /* ===================== RESET ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      cursor: none;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: none; border: none; outline: none; }
+    img { display: block; max-width: 100%; }
+
+    /* ===================== CURSOR ===================== */
+    #cursor-dot {
+      width: 16px; height: 16px;
+      background: var(--yellow);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: difference;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease;
+    }
+    #cursor-ring {
+      width: 40px; height: 40px;
+      border: 2px solid var(--yellow);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      mix-blend-mode: difference;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease, width 0.2s ease, height 0.2s ease;
+    }
+    body:hover #cursor-ring { opacity: 1; }
+
+    /* ===================== NAV ===================== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: var(--black);
+      border-bottom: 1px solid rgba(245,240,232,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.1em;
+      color: var(--yellow);
+    }
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white);
+      position: relative;
+      padding-bottom: 4px;
+      transition: color 0.2s;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 2px;
+      background: var(--yellow);
+      transition: width 0.2s ease;
+    }
+    .nav-links a.active::after,
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: var(--yellow); }
+    .nav-cta {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--orange); color: var(--white); }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--white);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: var(--nav-h); left: 0; right: 0;
+      background: var(--black);
+      border-bottom: 1px solid rgba(245,240,232,0.1);
+      flex-direction: column;
+      padding: 24px 40px;
+      gap: 20px;
+      z-index: 99;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: var(--font-ui);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ===================== PAGES ===================== */
+    .page { display: none; padding-top: var(--nav-h); min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ===================== HOME — HERO ===================== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, #1a0030 0%, var(--black) 70%);
+      animation: heroBgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes heroBgPulse {
+      0%   { background: radial-gradient(ellipse 80% 60% at 50% 50%, #1a0030 0%, var(--black) 70%); }
+      33%  { background: radial-gradient(ellipse 80% 60% at 50% 50%, #200a00 0%, var(--black) 70%); }
+      66%  { background: radial-gradient(ellipse 80% 60% at 50% 50%, #001a10 0%, var(--black) 70%); }
+      100% { background: radial-gradient(ellipse 80% 60% at 50% 50%, #0a001a 0%, var(--black) 70%); }
+    }
+    .grain {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+    .hero-headline {
+      font-family: var(--font-display);
+      line-height: 0.88;
+      margin-bottom: 24px;
+    }
+    .hero-headline .line1 {
+      display: block;
+      font-size: clamp(6rem, 20vw, 18rem);
+      color: var(--white);
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.15s forwards;
+    }
+    .hero-headline .line2 {
+      display: block;
+      font-size: clamp(6rem, 20vw, 18rem);
+      color: transparent;
+      -webkit-text-stroke: 3px var(--yellow);
+      text-stroke: 3px var(--yellow);
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.3s forwards;
+    }
+    .hero-subtitle {
+      font-family: var(--font-body);
+      font-size: clamp(13px, 1.5vw, 16px);
+      color: rgba(245,240,232,0.6);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.45s forwards;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.6s forwards;
+    }
+    .btn-primary {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px 36px;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--orange); color: var(--white); transform: translateY(-2px); }
+    .btn-ghost {
+      border: 2px solid var(--white);
+      color: var(--white);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px 36px;
+      transition: border-color 0.2s, color 0.2s, transform 0.2s;
+      display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--yellow); color: var(--yellow); transform: translateY(-2px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TICKER */
+    .ticker-strip {
+      background: var(--black);
+      border-top: 1px solid rgba(245,240,232,0.1);
+      border-bottom: 1px solid rgba(245,240,232,0.1);
+      overflow: hidden;
+      padding: 12px 0;
+    }
+    .ticker-track {
+      display: flex;
+      gap: 60px;
+      white-space: nowrap;
+      animation: tickerScroll 30s linear infinite;
+    }
+    .ticker-track span {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      letter-spacing: 0.15em;
+      color: var(--orange);
+    }
+    .ticker-track .sep { color: var(--yellow); }
+    @keyframes tickerScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* MARQUEE */
+    .marquee-strip {
+      background: var(--yellow);
+      overflow: hidden;
+      padding: 10px 0;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 48px;
+      white-space: nowrap;
+      animation: tickerScroll 20s linear infinite;
+    }
+    .marquee-track span {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--black);
+    }
+
+    /* FEATURED DROPS */
+    .section { padding: 80px 40px; }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      letter-spacing: 0.04em;
+    }
+    .section-link {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      border-bottom: 1px solid var(--yellow);
+      padding-bottom: 2px;
+    }
+    .drops-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+    .drop-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: var(--black);
+    }
+    .drop-card.large { grid-row: span 2; aspect-ratio: auto; min-height: 500px; }
+    .drop-card-bg {
+      width: 100%; height: 100%;
+      position: absolute;
+      inset: 0;
+      transition: transform 0.4s ease;
+    }
+    .drop-card:hover .drop-card-bg { transform: scale(1.06); }
+    .drop-card-icon {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(3rem, 6vw, 5rem);
+      z-index: 2;
+      pointer-events: none;
+    }
+    .drop-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,10,10,0.85) 0%, transparent 55%);
+      z-index: 3;
+    }
+    .drop-card-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px;
+      z-index: 4;
+    }
+    .drop-card-name {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+    }
+    .drop-card.large .drop-card-name { font-size: 2.2rem; }
+    .drop-card-price {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-top: 4px;
+    }
+    .drop-card-hover {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,225,53,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .drop-card:hover .drop-card-hover { opacity: 1; }
+    .drop-card-hover span {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      color: var(--black);
+      letter-spacing: 0.1em;
+    }
+
+    /* STATEMENT */
+    .statement-block {
+      background: var(--yellow);
+      padding: 80px 40px;
+      text-align: center;
+    }
+    .statement-text {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      line-height: 1;
+      color: var(--black);
+      letter-spacing: 0.03em;
+    }
+    .statement-text .accent { color: var(--red); }
+
+    /* COLLECTIONS PREVIEW */
+    .collections-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .coll-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 3/4;
+    }
+    .coll-card-bg {
+      width: 100%; height: 100%;
+      position: absolute;
+      inset: 0;
+      transition: transform 0.4s ease;
+    }
+    .coll-card:hover .coll-card-bg { transform: scale(1.06); }
+    .coll-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.2) 60%, transparent 100%);
+      z-index: 2;
+    }
+    .coll-card-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 24px;
+      z-index: 3;
+    }
+    .coll-season {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .coll-name {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* NEWSLETTER BAR */
+    .newsletter-bar {
+      background: var(--orange);
+      padding: 56px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .newsletter-text h3 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      letter-spacing: 0.04em;
+    }
+    .newsletter-text p {
+      font-size: 13px;
+      color: rgba(245,240,232,0.75);
+      margin-top: 4px;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 0;
+      flex: 1;
+      max-width: 420px;
+      min-width: 260px;
+    }
+    .newsletter-form input {
+      flex: 1;
+      background: rgba(10,10,10,0.3);
+      border: 2px solid rgba(245,240,232,0.3);
+      border-right: none;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .newsletter-form input::placeholder { color: rgba(245,240,232,0.4); }
+    .newsletter-form input:focus { border-color: var(--yellow); }
+    .newsletter-form button {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      transition: background 0.2s;
+    }
+    .newsletter-form button:hover { background: var(--white); }
+
+    /* FOOTER */
+    footer {
+      background: #050505;
+      border-top: 1px solid rgba(245,240,232,0.06);
+      padding: 64px 40px 32px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand .logo {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      color: var(--yellow);
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+    .footer-brand p {
+      font-size: 12px;
+      color: rgba(245,240,232,0.45);
+      line-height: 1.8;
+      max-width: 260px;
+    }
+    .footer-social {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .footer-social a {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(245,240,232,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .footer-social a:hover { border-color: var(--yellow); color: var(--yellow); }
+    .footer-col h4 {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 20px;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 10px; }
+    .footer-col ul li a {
+      font-size: 13px;
+      color: rgba(245,240,232,0.5);
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: var(--white); }
+    .footer-bottom {
+      border-top: 1px solid rgba(245,240,232,0.06);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom p {
+      font-size: 11px;
+      color: rgba(245,240,232,0.25);
+      letter-spacing: 0.1em;
+    }
+
+    /* ===================== SHOP PAGE ===================== */
+    .shop-header {
+      padding: 60px 40px 32px;
+      border-bottom: 1px solid rgba(245,240,232,0.08);
+    }
+    .shop-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 7vw, 6rem);
+      letter-spacing: 0.04em;
+      margin-bottom: 24px;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      background: transparent;
+      border: 1px solid rgba(245,240,232,0.2);
+      color: rgba(245,240,232,0.6);
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      color: var(--black);
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      padding: 2px;
+    }
+    .product-card {
+      position: relative;
+      overflow: hidden;
+      background: var(--black);
+      aspect-ratio: 3/4;
+    }
+    .product-card-bg {
+      width: 100%; height: 100%;
+      position: absolute;
+      inset: 0;
+      transition: transform 0.4s ease;
+    }
+    .product-card:hover .product-card-bg { transform: scale(1.06); }
+    .product-card-icon {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -65%);
+      font-size: 4rem;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .product-badge {
+      position: absolute;
+      top: 16px; left: 16px;
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      z-index: 4;
+    }
+    .badge-new { background: var(--green); color: var(--black); }
+    .badge-limited { background: var(--orange); color: var(--white); }
+    .badge-sold { background: rgba(245,240,232,0.2); color: var(--white); }
+    .product-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 55%);
+      z-index: 3;
+    }
+    .product-card-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px;
+      z-index: 4;
+    }
+    .product-category {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.4);
+      margin-bottom: 4px;
+    }
+    .product-name {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      letter-spacing: 0.04em;
+    }
+    .product-price {
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-top: 4px;
+    }
+    .product-hover {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,225,53,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .product-card:hover .product-hover { opacity: 1; }
+    .product-hover span {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--black);
+      letter-spacing: 0.1em;
+    }
+    .product-hover .qv-price {
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--black);
+    }
+
+    /* ===================== COLLECTIONS PAGE ===================== */
+    .collections-editorial { padding-top: 0; }
+    .coll-editorial {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 600px;
+    }
+    .coll-editorial.reverse { direction: rtl; }
+    .coll-editorial.reverse > * { direction: ltr; }
+    .coll-image {
+      position: relative;
+      overflow: hidden;
+      min-height: 500px;
+    }
+    .coll-image-bg {
+      width: 100%; height: 100%;
+      position: absolute;
+      inset: 0;
+      transition: transform 0.5s ease;
+    }
+    .coll-editorial:hover .coll-image-bg { transform: scale(1.04); }
+    .coll-info {
+      background: var(--black);
+      padding: 80px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .coll-num {
+      position: absolute;
+      top: -20px; right: -20px;
+      font-family: var(--font-display);
+      font-size: 12rem;
+      color: rgba(245,240,232,0.03);
+      pointer-events: none;
+      line-height: 1;
+    }
+    .coll-info .coll-season {
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+    .coll-info-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 5vw, 5rem);
+      letter-spacing: 0.04em;
+      line-height: 0.92;
+      margin-bottom: 24px;
+    }
+    .coll-desc {
+      font-size: 13px;
+      color: rgba(245,240,232,0.6);
+      line-height: 1.8;
+      max-width: 380px;
+      margin-bottom: 24px;
+    }
+    .coll-count {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: rgba(245,240,232,0.35);
+      margin-bottom: 36px;
+      text-transform: uppercase;
+    }
+
+    /* ===================== ABOUT PAGE ===================== */
+    .about-hero {
+      padding: 80px 40px;
+      text-align: center;
+      border-bottom: 1px solid rgba(245,240,232,0.08);
+    }
+    .about-headline {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 16vw, 16rem);
+      line-height: 0.85;
+      letter-spacing: 0.02em;
+    }
+    .about-headline .outlined {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 3px var(--white);
+    }
+    .about-headline .filled { display: block; color: var(--yellow); }
+    .about-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      padding: 80px 40px;
+      align-items: start;
+    }
+    .about-story p {
+      font-size: 14px;
+      color: rgba(245,240,232,0.7);
+      line-height: 2;
+      margin-bottom: 20px;
+    }
+    .about-story p:first-child {
+      font-family: var(--font-ui);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.6;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+    .stat-card {
+      background: rgba(245,240,232,0.03);
+      border: 1px solid rgba(245,240,232,0.06);
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 4rem;
+      color: var(--yellow);
+      letter-spacing: 0.02em;
+    }
+    .stat-label {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.4);
+      margin-top: 8px;
+    }
+    .values-section {
+      padding: 0 40px 80px;
+    }
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .value-card {
+      background: rgba(245,240,232,0.03);
+      padding: 40px 32px;
+      border-top: 3px solid var(--yellow);
+    }
+    .value-card:nth-child(2) { border-top-color: var(--orange); }
+    .value-card:nth-child(3) { border-top-color: var(--cyan); }
+    .value-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .value-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+    .value-desc {
+      font-size: 13px;
+      color: rgba(245,240,232,0.55);
+      line-height: 1.8;
+    }
+    .team-section {
+      background: var(--yellow);
+      padding: 80px 40px;
+    }
+    .team-section .section-title { color: var(--black); margin-bottom: 48px; }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .team-card {
+      background: var(--black);
+      padding: 32px;
+      text-align: center;
+    }
+    .team-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+    .team-name {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .team-role {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--yellow);
+    }
+
+    /* ===================== MEDIA PAGE ===================== */
+    .media-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid rgba(245,240,232,0.08);
+      padding: 0 40px;
+    }
+    .tab-btn {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 20px 32px;
+      background: none;
+      color: rgba(245,240,232,0.4);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+    .tab-btn:hover { color: var(--white); }
+    .tab-panel { display: none; padding: 48px 40px; }
+    .tab-panel.active { display: block; }
+    .gallery-grid {
+      columns: 3;
+      gap: 12px;
+    }
+    .gallery-item {
+      break-inside: avoid;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .gallery-item-bg {
+      width: 100%;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .gallery-item:hover .gallery-item-bg { transform: scale(1.06); }
+    .gallery-hover {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,225,53,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .gallery-item:hover .gallery-hover { opacity: 1; }
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .video-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+    }
+    .video-card-bg {
+      width: 100%; height: 100%;
+      position: absolute;
+      inset: 0;
+      transition: transform 0.4s ease;
+    }
+    .video-card:hover .video-card-bg { transform: scale(1.04); }
+    .video-play {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 64px; height: 64px;
+      background: rgba(255,225,53,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      z-index: 3;
+      transition: transform 0.2s;
+    }
+    .video-card:hover .video-play { transform: translate(-50%, -50%) scale(1.1); }
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,10,10,0.8) 0%, transparent 50%);
+      z-index: 2;
+    }
+    .video-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px;
+      z-index: 3;
+    }
+    .video-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+    }
+    .video-date {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      color: rgba(245,240,232,0.4);
+      margin-top: 4px;
+    }
+    .press-list { display: flex; flex-direction: column; gap: 0; }
+    .press-item {
+      border-bottom: 1px solid rgba(245,240,232,0.08);
+      padding: 40px 0;
+      display: grid;
+      grid-template-columns: 220px 1fr auto;
+      gap: 40px;
+      align-items: center;
+    }
+    .press-outlet {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      letter-spacing: 0.04em;
+    }
+    .press-quote {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: 14px;
+      color: rgba(245,240,232,0.6);
+      line-height: 1.7;
+    }
+    .press-date {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.3);
+      white-space: nowrap;
+    }
+
+    /* ===================== UTILITY ===================== */
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1024px) {
+      .drops-grid { grid-template-columns: 1fr 1fr; }
+      .drop-card.large { grid-column: span 2; grid-row: span 1; min-height: 360px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .coll-editorial { grid-template-columns: 1fr; }
+      .coll-editorial.reverse { direction: ltr; }
+      .coll-image { min-height: 380px; }
+      .coll-info { padding: 56px 40px; }
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: flex; }
+      .section { padding: 56px 20px; }
+      .shop-header { padding: 40px 20px 24px; }
+      .drops-grid { grid-template-columns: 1fr; }
+      .drop-card.large { grid-column: span 1; }
+      .product-grid { grid-template-columns: 1fr 1fr; }
+      .collections-grid { grid-template-columns: 1fr; }
+      .about-body { grid-template-columns: 1fr; gap: 40px; padding: 48px 20px; }
+      .about-hero { padding: 48px 20px; }
+      .values-grid { grid-template-columns: 1fr; }
+      .team-grid { grid-template-columns: 1fr 1fr; }
+      .gallery-grid { columns: 2; }
+      .video-grid { grid-template-columns: 1fr; }
+      .press-item { grid-template-columns: 1fr; gap: 12px; }
+      .newsletter-bar { padding: 40px 20px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+      .tab-btn { padding: 16px 20px; font-size: 12px; }
+      .media-tabs { padding: 0 20px; }
+      .tab-panel { padding: 32px 20px; }
+      .about-headline { font-size: clamp(3.5rem, 14vw, 8rem); }
+      .about-headline .outlined { -webkit-text-stroke: 2px var(--white); }
+    }
+    @media (max-width: 480px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .gallery-grid { columns: 1; }
+      .team-grid { grid-template-columns: 1fr; }
+      .hero-headline .line2 { -webkit-text-stroke: 2px var(--yellow); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#" onclick="showPage('home')">SVCRO</a>
+    <ul class="nav-links">
+      <li><a href="#" onclick="showPage('home')" data-page="home">Home</a></li>
+      <li><a href="#" onclick="showPage('shop')" data-page="shop">Shop</a></li>
+      <li><a href="#" onclick="showPage('collections')" data-page="collections">Collections</a></li>
+      <li><a href="#" onclick="showPage('about')" data-page="about">About</a></li>
+      <li><a href="#" onclick="showPage('media')" data-page="media">Media</a></li>
+    </ul>
+    <a class="nav-cta" href="#" onclick="showPage('shop')">Shop Now</a>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#" onclick="showPage('home'); closeMobile()">Home</a>
+    <a href="#" onclick="showPage('shop'); closeMobile()">Shop</a>
+    <a href="#" onclick="showPage('collections'); closeMobile()">Collections</a>
+    <a href="#" onclick="showPage('about'); closeMobile()">About</a>
+    <a href="#" onclick="showPage('media'); closeMobile()">Media</a>
+  </div>
+
+  <!-- ==================== HOME PAGE ==================== -->
+  <div id="page-home" class="page active">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="grain"></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">SS'25 Drop — Now Available</p>
+        <h1 class="hero-headline">
+          <span class="line1">WEAR</span>
+          <span class="line2">LOUD</span>
+        </h1>
+        <p class="hero-subtitle">Not just clothing. A declaration of intent. Wear who you are, unfiltered and unapologetic.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn-primary" onclick="showPage('shop')">Shop the Drop</a>
+          <a href="#" class="btn-ghost" onclick="showPage('collections')">View Collections</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- TICKER STRIP -->
+    <div class="ticker-strip">
+      <div class="ticker-track">
+        <span>SS'25 DROP — LOUD SEASON — AVAILABLE NOW</span>
+        <span class="sep">★</span>
+        <span>LIMITED UNITS REMAINING</span>
+        <span class="sep">★</span>
+        <span>FOLLOW @SVCROOFFICIAL FOR EXCLUSIVE RELEASES</span>
+        <span class="sep">★</span>
+        <span>FW'25 DROP INBOUND — STAY LOCKED</span>
+        <span class="sep">★</span>
+        <span>SS'25 DROP — LOUD SEASON — AVAILABLE NOW</span>
+        <span class="sep">★</span>
+        <span>LIMITED UNITS REMAINING</span>
+        <span class="sep">★</span>
+        <span>FOLLOW @SVCROOFFICIAL FOR EXCLUSIVE RELEASES</span>
+        <span class="sep">★</span>
+        <span>FW'25 DROP INBOUND — STAY LOCKED</span>
+        <span class="sep">★</span>
+      </div>
+    </div>
+
+    <!-- MARQUEE STRIP -->
+    <div class="marquee-strip">
+      <div class="marquee-track">
+        <span>Free Shipping on Orders Over $100</span>
+        <span>✦</span>
+        <span>New Drop Every Season</span>
+        <span>✦</span>
+        <span>@svcroofficial</span>
+        <span>✦</span>
+        <span>Limited Edition Always</span>
+        <span>✦</span>
+        <span>Free Shipping on Orders Over $100</span>
+        <span>✦</span>
+        <span>New Drop Every Season</span>
+        <span>✦</span>
+        <span>@svcroofficial</span>
+        <span>✦</span>
+        <span>Limited Edition Always</span>
+        <span>✦</span>
+      </div>
+    </div>
+
+    <!-- FEATURED DROPS -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">FEATURED DROPS</h2>
+        <a href="#" class="section-link" onclick="showPage('shop')">View All →</a>
+      </div>
+      <div class="drops-grid">
+        <div class="drop-card large">
+          <div class="drop-card-bg" style="background: linear-gradient(135deg, var(--orange) 0%, var(--red) 50%, var(--purple) 100%);"></div>
+          <div class="drop-card-icon">🔥</div>
+          <div class="drop-card-overlay"></div>
+          <div class="drop-card-info">
+            <div class="drop-card-name">LOUD SEASON<br>WASHED HOODIE</div>
+            <div class="drop-card-price">$110</div>
+          </div>
+          <div class="drop-card-hover"><span>QUICK VIEW</span></div>
+        </div>
+        <div class="drop-card">
+          <div class="drop-card-bg" style="background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);"></div>
+          <div class="drop-card-icon">🧢</div>
+          <div class="drop-card-overlay"></div>
+          <div class="drop-card-info">
+            <div class="drop-card-name">SVCRO 6-PANEL CAP</div>
+            <div class="drop-card-price">$45</div>
+          </div>
+          <div class="drop-card-hover"><span>QUICK VIEW</span></div>
+        </div>
+        <div class="drop-card">
+          <div class="drop-card-bg" style="background: linear-gradient(135deg, var(--yellow) 0%, var(--orange) 100%);"></div>
+          <div class="drop-card-icon">👕</div>
+          <div class="drop-card-overlay"></div>
+          <div class="drop-card-info">
+            <div class="drop-card-name">OVERSIZED GRAPHIC TEE</div>
+            <div class="drop-card-price">$58</div>
+          </div>
+          <div class="drop-card-hover"><span>QUICK VIEW</span></div>
+        </div>
+        <div class="drop-card">
+          <div class="drop-card-bg" style="background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 100%);"></div>
+          <div class="drop-card-icon">🧥</div>
+          <div class="drop-card-overlay"></div>
+          <div class="drop-card-info">
+            <div class="drop-card-name">TRACK JACKET VOL.1</div>
+            <div class="drop-card-price">$120</div>
+          </div>
+          <div class="drop-card-hover"><span>QUICK VIEW</span></div>
+        </div>
+        <div class="drop-card">
+          <div class="drop-card-bg" style="background: linear-gradient(135deg, var(--pink) 0%, var(--red) 100%);"></div>
+          <div class="drop-card-icon">🎒</div>
+          <div class="drop-card-overlay"></div>
+          <div class="drop-card-info">
+            <div class="drop-card-name">SVCRO x DROP VOL.1</div>
+            <div class="drop-card-price">$180</div>
+          </div>
+          <div class="drop-card-hover"><span>QUICK VIEW</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATEMENT BLOCK -->
+    <div class="statement-block">
+      <p class="statement-text">NOT JUST CLOTHES. <span class="accent">A DECLARATION.</span> WEAR WHO YOU ARE.</p>
+    </div>
+
+    <!-- COLLECTIONS PREVIEW -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">COLLECTIONS</h2>
+        <a href="#" class="section-link" onclick="showPage('collections')">View All →</a>
+      </div>
+      <div class="collections-grid">
+        <div class="coll-card" onclick="showPage('collections')">
+          <div class="coll-card-bg" style="background: linear-gradient(160deg, var(--orange) 0%, var(--yellow) 100%);"></div>
+          <div class="coll-card-overlay"></div>
+          <div class="coll-card-info">
+            <div class="coll-season">SS'25</div>
+            <div class="coll-name">LOUD SEASON</div>
+          </div>
+        </div>
+        <div class="coll-card" onclick="showPage('collections')">
+          <div class="coll-card-bg" style="background: linear-gradient(160deg, var(--purple) 0%, var(--pink) 100%);"></div>
+          <div class="coll-card-overlay"></div>
+          <div class="coll-card-info">
+            <div class="coll-season">FW'24</div>
+            <div class="coll-name">NEON NOIR</div>
+          </div>
+        </div>
+        <div class="coll-card" onclick="showPage('collections')">
+          <div class="coll-card-bg" style="background: linear-gradient(160deg, #1a1a1a 0%, #3a3a3a 100%);"></div>
+          <div class="coll-card-overlay"></div>
+          <div class="coll-card-info">
+            <div class="coll-season">Year-Round</div>
+            <div class="coll-name">CORE ESSENTIALS</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <div class="newsletter-bar">
+      <div class="newsletter-text">
+        <h3>JOIN THE MOVEMENT</h3>
+        <p>Early access to drops, exclusive content, no spam.</p>
+      </div>
+      <form class="newsletter-form" onsubmit="handleNewsletter(event)">
+        <input type="email" placeholder="Your email address" required />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo">SVCRO</div>
+          <p>Art-driven streetwear for those who refuse to blend in. Every piece is a statement. Every drop is limited.</p>
+          <div class="footer-social">
+            <a href="#">IG</a>
+            <a href="#">TT</a>
+            <a href="#">TW</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="#" onclick="showPage('shop')">All Products</a></li>
+            <li><a href="#" onclick="showPage('shop')">Tops</a></li>
+            <li><a href="#" onclick="showPage('shop')">Bottoms</a></li>
+            <li><a href="#" onclick="showPage('shop')">Headwear</a></li>
+            <li><a href="#" onclick="showPage('shop')">Accessories</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Info</h4>
+          <ul>
+            <li><a href="#" onclick="showPage('about')">About</a></li>
+            <li><a href="#" onclick="showPage('collections')">Collections</a></li>
+            <li><a href="#" onclick="showPage('media')">Media</a></li>
+            <li><a href="#">Lookbook</a></li>
+            <li><a href="#">Stockists</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Help</h4>
+          <ul>
+            <li><a href="#">Sizing Guide</a></li>
+            <li><a href="#">Shipping</a></li>
+            <li><a href="#">Returns</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 SVCRO. All rights reserved.</p>
+        <p>@svcroofficial</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ==================== SHOP PAGE ==================== -->
+  <div id="page-shop" class="page">
+    <div class="shop-header">
+      <h1 class="shop-title">THE SHOP</h1>
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterProducts('all', this)">All</button>
+        <button class="filter-btn" onclick="filterProducts('tops', this)">Tops</button>
+        <button class="filter-btn" onclick="filterProducts('bottoms', this)">Bottoms</button>
+        <button class="filter-btn" onclick="filterProducts('headwear', this)">Headwear</button>
+        <button class="filter-btn" onclick="filterProducts('accessories', this)">Accessories</button>
+      </div>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+
+    <div class="newsletter-bar" style="margin-top:2px;">
+      <div class="newsletter-text">
+        <h3>NEVER MISS A DROP</h3>
+        <p>Get notified before they sell out.</p>
+      </div>
+      <form class="newsletter-form" onsubmit="handleNewsletter(event)">
+        <input type="email" placeholder="Your email address" required />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+
+    <footer>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo">SVCRO</div>
+          <p>Art-driven streetwear for those who refuse to blend in.</p>
+          <div class="footer-social">
+            <a href="#">IG</a><a href="#">TT</a><a href="#">TW</a>
+          </div>
+        </div>
+        <div class="footer-col"><h4>Shop</h4><ul><li><a href="#" onclick="filterProducts('all')">All Products</a></li><li><a href="#" onclick="filterProducts('tops')">Tops</a></li><li><a href="#" onclick="filterProducts('bottoms')">Bottoms</a></li><li><a href="#" onclick="filterProducts('headwear')">Headwear</a></li><li><a href="#" onclick="filterProducts('accessories')">Accessories</a></li></ul></div>
+        <div class="footer-col"><h4>Info</h4><ul><li><a href="#" onclick="showPage('about')">About</a></li><li><a href="#" onclick="showPage('collections')">Collections</a></li></ul></div>
+        <div class="footer-col"><h4>Help</h4><ul><li><a href="#">Sizing</a></li><li><a href="#">Shipping</a></li><li><a href="#">Returns</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><p>© 2025 SVCRO. All rights reserved.</p></div>
+    </footer>
+  </div>
+
+  <!-- ==================== COLLECTIONS PAGE ==================== -->
+  <div id="page-collections" class="page">
+
+    <section class="coll-editorial">
+      <div class="coll-image">
+        <div class="coll-image-bg" style="background: linear-gradient(135deg, var(--orange) 0%, var(--yellow) 60%, var(--red) 100%);"></div>
+      </div>
+      <div class="coll-info">
+        <div class="coll-num">01</div>
+        <div class="coll-season">SS'25</div>
+        <h2 class="coll-info-title">LOUD<br>SEASON</h2>
+        <p class="coll-desc">Our boldest collection yet. Built for those who refuse to be ignored. Saturated colorways, oversized silhouettes, graphic-forward pieces that announce your presence before you speak.</p>
+        <p class="coll-count">24 Pieces · Current Season</p>
+        <a href="#" class="btn-primary" onclick="showPage('shop')">Shop Collection</a>
+      </div>
+    </section>
+
+    <section class="coll-editorial reverse">
+      <div class="coll-image">
+        <div class="coll-image-bg" style="background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 50%, #1a0020 100%);"></div>
+      </div>
+      <div class="coll-info" style="background: #0d0010;">
+        <div class="coll-num">02</div>
+        <div class="coll-season">FW'24</div>
+        <h2 class="coll-info-title">NEON<br>NOIR</h2>
+        <p class="coll-desc">Dark foundations lit by electric accents. Heavy fleece, balaclava silhouettes, and night-scene colorways for when the sun goes down and the streets come alive.</p>
+        <p class="coll-count">20 Pieces · Available</p>
+        <a href="#" class="btn-primary" onclick="showPage('shop')">Shop Collection</a>
+      </div>
+    </section>
+
+    <section class="coll-editorial">
+      <div class="coll-image">
+        <div class="coll-image-bg" style="background: linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 50%, #111 100%);"></div>
+      </div>
+      <div class="coll-info">
+        <div class="coll-num">03</div>
+        <div class="coll-season">Year-Round</div>
+        <h2 class="coll-info-title">CORE<br>ESSENTIALS</h2>
+        <p class="coll-desc">The backbone of the wardrobe. Stripped back, high quality, built to last. These are the foundational pieces — versatile, minimal, but unmistakably SVCRO.</p>
+        <p class="coll-count">18 Pieces · Always Available</p>
+        <a href="#" class="btn-primary" onclick="showPage('shop')">Shop Collection</a>
+      </div>
+    </section>
+
+    <section class="coll-editorial reverse">
+      <div class="coll-image">
+        <div class="coll-image-bg" style="background: linear-gradient(135deg, var(--red) 0%, var(--orange) 60%, var(--yellow) 100%);"></div>
+      </div>
+      <div class="coll-info" style="background: #130500;">
+        <div class="coll-num">04</div>
+        <div class="coll-season" style="color:var(--yellow)">SS'24 Archive</div>
+        <h2 class="coll-info-title">SIGNAL<br>FIRE</h2>
+        <p class="coll-desc">The archive piece that started it all. Flame-coded colorways, experimental cuts, and the energy of a brand finding its voice. Now rare, now legendary.</p>
+        <p class="coll-count">10 Pieces · Archive</p>
+        <a href="#" class="btn-ghost" onclick="showPage('shop')">View Archive</a>
+      </div>
+    </section>
+
+    <div class="newsletter-bar">
+      <div class="newsletter-text">
+        <h3>NEW COLLECTIONS DROP SEASONALLY</h3>
+        <p>Be the first to know.</p>
+      </div>
+      <form class="newsletter-form" onsubmit="handleNewsletter(event)">
+        <input type="email" placeholder="Your email address" required />
+        <button type="submit">Notify Me</button>
+      </form>
+    </div>
+
+    <footer>
+      <div class="footer-grid">
+        <div class="footer-brand"><div class="logo">SVCRO</div><p>Art-driven streetwear. Every drop is limited.</p><div class="footer-social"><a href="#">IG</a><a href="#">TT</a><a href="#">TW</a></div></div>
+        <div class="footer-col"><h4>Shop</h4><ul><li><a href="#" onclick="showPage('shop')">All Products</a></li></ul></div>
+        <div class="footer-col"><h4>Info</h4><ul><li><a href="#" onclick="showPage('about')">About</a></li><li><a href="#" onclick="showPage('media')">Media</a></li></ul></div>
+        <div class="footer-col"><h4>Help</h4><ul><li><a href="#">Contact</a></li><li><a href="#">FAQ</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><p>© 2025 SVCRO. All rights reserved.</p></div>
+    </footer>
+  </div>
+
+  <!-- ==================== ABOUT PAGE ==================== -->
+  <div id="page-about" class="page">
+    <div class="about-hero">
+      <h1 class="about-headline">
+        <span class="outlined">BUILT</span>
+        <span class="filled">DIFFERENT.</span>
+      </h1>
+    </div>
+
+    <div class="about-body">
+      <div class="about-story">
+        <p>SVCRO was built in the intersection of art, culture, and streetwear — a brand that treats clothing as canvas and the streets as a gallery.</p>
+        <p>We started with a single idea: that what you wear is an extension of who you are, and that settling for the ordinary is a choice you should never have to make. From our first drop to our current collections, every piece is designed with the same relentless commitment to visual impact and uncompromising quality.</p>
+        <p>Every piece is limited. Every drop is deliberate. We don't do restocks — we do new chapters. When it's gone, it's gone. That's not just scarcity — it's respect for the people who show up early, who stay locked, who understand that fashion should mean something more than fast.</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">4</div>
+          <div class="stat-label">Collections</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">72</div>
+          <div class="stat-label">Pieces Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">48H</div>
+          <div class="stat-label">Sellout Avg</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">∞</div>
+          <div class="stat-label">Vision</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="values-section">
+      <h2 class="section-title" style="margin-bottom:40px;">WHAT WE STAND FOR</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">🔥</div>
+          <div class="value-title">BOLD FIRST</div>
+          <p class="value-desc">We make choices others don't. Every design decision starts with the question: is this bold enough? If the answer is anything less than yes, we start over.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🎨</div>
+          <div class="value-title">ART-DRIVEN</div>
+          <p class="value-desc">Every piece begins as an art concept. Color theory, composition, cultural reference — these aren't afterthoughts, they're the entire point.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">⚡</div>
+          <div class="value-title">LIMITED ALWAYS</div>
+          <p class="value-desc">We don't chase volume. Each drop is intentionally capped. Because owning SVCRO should feel like owning something rare — because it is.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-section">
+      <h2 class="section-title">THE TEAM</h2>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar" style="background: linear-gradient(135deg, var(--orange), var(--red));">🎯</div>
+          <div class="team-name">Marcus V.</div>
+          <div class="team-role">Creative Director</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background: linear-gradient(135deg, var(--purple), var(--cyan));">🎨</div>
+          <div class="team-name">Jordan K.</div>
+          <div class="team-role">Head of Art</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background: linear-gradient(135deg, var(--yellow), var(--orange));">📢</div>
+          <div class="team-name">Aaliyah T.</div>
+          <div class="team-role">Brand Manager</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background: linear-gradient(135deg, var(--green), var(--cyan));">⚙️</div>
+          <div class="team-name">Devon R.</div>
+          <div class="team-role">Production Lead</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-grid">
+        <div class="footer-brand"><div class="logo">SVCRO</div><p>Art-driven streetwear. Every drop is limited.</p><div class="footer-social"><a href="#">IG</a><a href="#">TT</a><a href="#">TW</a></div></div>
+        <div class="footer-col"><h4>Shop</h4><ul><li><a href="#" onclick="showPage('shop')">All Products</a></li></ul></div>
+        <div class="footer-col"><h4>Info</h4><ul><li><a href="#" onclick="showPage('collections')">Collections</a></li><li><a href="#" onclick="showPage('media')">Media</a></li></ul></div>
+        <div class="footer-col"><h4>Help</h4><ul><li><a href="#">Contact</a></li><li><a href="#">FAQ</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><p>© 2025 SVCRO. All rights reserved.</p></div>
+    </footer>
+  </div>
+
+  <!-- ==================== MEDIA PAGE ==================== -->
+  <div id="page-media" class="page">
+    <div class="shop-header">
+      <h1 class="shop-title">MEDIA</h1>
+    </div>
+
+    <div class="media-tabs">
+      <button class="tab-btn active" onclick="switchTab('gallery', this)">Gallery</button>
+      <button class="tab-btn" onclick="switchTab('videos', this)">Videos</button>
+      <button class="tab-btn" onclick="switchTab('press', this)">Press</button>
+    </div>
+
+    <!-- GALLERY TAB -->
+    <div id="tab-gallery" class="tab-panel active">
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+
+    <!-- VIDEOS TAB -->
+    <div id="tab-videos" class="tab-panel">
+      <div class="video-grid">
+        <div class="video-card">
+          <div class="video-card-bg" style="background: linear-gradient(135deg, var(--orange), var(--red));"></div>
+          <div class="video-overlay"></div>
+          <div class="video-play">▶</div>
+          <div class="video-info">
+            <div class="video-title">LOUD SEASON — Official Campaign</div>
+            <div class="video-date">Apr 2025</div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-card-bg" style="background: linear-gradient(135deg, var(--purple), var(--pink));"></div>
+          <div class="video-overlay"></div>
+          <div class="video-play">▶</div>
+          <div class="video-info">
+            <div class="video-title">NEON NOIR — Behind the Scenes</div>
+            <div class="video-date">Feb 2025</div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-card-bg" style="background: linear-gradient(135deg, var(--cyan), var(--green));"></div>
+          <div class="video-overlay"></div>
+          <div class="video-play">▶</div>
+          <div class="video-info">
+            <div class="video-title">CORE ESSENTIALS — Editorial</div>
+            <div class="video-date">Jan 2025</div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-card-bg" style="background: linear-gradient(135deg, var(--yellow), var(--orange));"></div>
+          <div class="video-overlay"></div>
+          <div class="video-play">▶</div>
+          <div class="video-info">
+            <div class="video-title">SIGNAL FIRE — Archive Lookbook</div>
+            <div class="video-date">Nov 2024</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRESS TAB -->
+    <div id="tab-press" class="tab-panel">
+      <div class="press-list">
+        <div class="press-item">
+          <div class="press-outlet">HYPEBEAST</div>
+          <div class="press-quote">"SVCRO's LOUD SEASON collection signals a new era for independent streetwear — brash, unapologetic, and impossible to ignore. This is what the culture needed."</div>
+          <div class="press-date">Apr 2025</div>
+        </div>
+        <div class="press-item">
+          <div class="press-outlet">COMPLEX</div>
+          <div class="press-quote">"The brand that refuses to play by anyone else's rules. SVCRO's latest drop sold out in under 48 hours — and we completely understand why."</div>
+          <div class="press-date">Mar 2025</div>
+        </div>
+        <div class="press-item">
+          <div class="press-outlet">HIGHSNOBIETY</div>
+          <div class="press-quote">"Maximalism done right. SVCRO finds the rare balance between wearable and visually overwhelming — and somehow makes both feel essential."</div>
+          <div class="press-date">Feb 2025</div>
+        </div>
+        <div class="press-item">
+          <div class="press-outlet">VOGUE</div>
+          <div class="press-quote">"Street culture's most vibrant new voice. SVCRO is building something that transcends category — this is fashion as protest, as art, as identity."</div>
+          <div class="press-date">Jan 2025</div>
+        </div>
+        <div class="press-item">
+          <div class="press-outlet">DAZED</div>
+          <div class="press-quote">"We've been following SVCRO since Signal Fire, and the trajectory has been nothing short of spectacular. This brand is exactly what the underground needed."</div>
+          <div class="press-date">Nov 2024</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-grid">
+        <div class="footer-brand"><div class="logo">SVCRO</div><p>Art-driven streetwear. Every drop is limited.</p><div class="footer-social"><a href="#">IG</a><a href="#">TT</a><a href="#">TW</a></div></div>
+        <div class="footer-col"><h4>Shop</h4><ul><li><a href="#" onclick="showPage('shop')">All Products</a></li></ul></div>
+        <div class="footer-col"><h4>Info</h4><ul><li><a href="#" onclick="showPage('about')">About</a></li><li><a href="#" onclick="showPage('collections')">Collections</a></li></ul></div>
+        <div class="footer-col"><h4>Help</h4><ul><li><a href="#">Contact</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><p>© 2025 SVCRO. All rights reserved.</p></div>
+    </footer>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    /* ---- CURSOR ---- */
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+    });
+
+    (function animRing() {
+      rx += (mx - rx) * 0.15;
+      ry += (my - ry) * 0.15;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animRing);
+    })();
+
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        ring.style.width  = '60px';
+        ring.style.height = '60px';
+      });
+      el.addEventListener('mouseleave', () => {
+        ring.style.width  = '40px';
+        ring.style.height = '40px';
+      });
+    });
+
+    /* ---- ROUTING ---- */
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        a.classList.toggle('active', a.dataset.page === id);
+      });
+      window.scrollTo(0, 0);
+      if (id === 'shop') renderProducts('all');
+      if (id === 'media') renderGallery();
+    }
+
+    /* ---- HAMBURGER ---- */
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      mobileMenu.classList.toggle('open');
+    });
+    function closeMobile() {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    }
+
+    /* ---- PRODUCTS DATA ---- */
+    const products = [
+      { id:1,  name:'Oversized Graphic Tee',    price:'$58',  cat:'tops',        badge:'new',     icon:'👕', grad:'linear-gradient(135deg, var(--orange), var(--yellow))' },
+      { id:2,  name:'SVCRO 6-Panel Cap',         price:'$45',  cat:'headwear',    badge:'limited', icon:'🧢', grad:'linear-gradient(135deg, var(--cyan), var(--purple))' },
+      { id:3,  name:'Track Jacket Vol.1',         price:'$120', cat:'tops',        badge:'new',     icon:'🧥', grad:'linear-gradient(135deg, var(--green), var(--cyan))' },
+      { id:4,  name:'Cargo Pants Wide Leg',       price:'$95',  cat:'bottoms',     badge:'',        icon:'👖', grad:'linear-gradient(135deg, #1a1a1a, #3a3a3a)' },
+      { id:5,  name:'SVCRO x Drop Vol.1',         price:'$180', cat:'accessories', badge:'limited', icon:'🎒', grad:'linear-gradient(135deg, var(--pink), var(--red))' },
+      { id:6,  name:'Logo Balaclava',             price:'$38',  cat:'accessories', badge:'new',     icon:'🎭', grad:'linear-gradient(135deg, var(--purple), var(--pink))' },
+      { id:7,  name:'Washed Hoodie',              price:'$110', cat:'tops',        badge:'',        icon:'🔥', grad:'linear-gradient(135deg, var(--orange), var(--red))' },
+      { id:8,  name:'Snap-Back Cap',              price:'$40',  cat:'headwear',    badge:'',        icon:'🧢', grad:'linear-gradient(135deg, var(--yellow), var(--orange))' },
+      { id:9,  name:'Graphic Long-Sleeve',        price:'$72',  cat:'tops',        badge:'sold',    icon:'👕', grad:'linear-gradient(135deg, var(--red), var(--purple))' },
+      { id:10, name:'Baggy Cargo Shorts',         price:'$85',  cat:'bottoms',     badge:'',        icon:'🩳', grad:'linear-gradient(135deg, var(--cyan), var(--green))' },
+      { id:11, name:'Tote Bag LOUD',              price:'$35',  cat:'accessories', badge:'new',     icon:'👜', grad:'linear-gradient(135deg, var(--yellow), var(--green))' },
+      { id:12, name:'Bucket Hat Reversible',      price:'$52',  cat:'headwear',    badge:'limited', icon:'🎩', grad:'linear-gradient(135deg, var(--pink), var(--cyan))' },
+    ];
+
+    function renderProducts(filter) {
+      const grid = document.getElementById('productGrid');
+      const filtered = filter === 'all' ? products : products.filter(p => p.cat === filter);
+      grid.innerHTML = filtered.map(p => `
+        <div class="product-card">
+          <div class="product-card-bg" style="background:${p.grad};"></div>
+          <div class="product-card-icon">${p.icon}</div>
+          ${p.badge ? `<div class="product-badge badge-${p.badge}">${p.badge}</div>` : ''}
+          <div class="product-card-overlay"></div>
+          <div class="product-card-info">
+            <div class="product-category">${p.cat}</div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-price">${p.price}</div>
+          </div>
+          <div class="product-hover">
+            <span>QUICK VIEW</span>
+            <span class="qv-price">${p.price}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterProducts(cat, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderProducts(cat);
+    }
+
+    /* ---- GALLERY DATA ---- */
+    const galleryItems = [
+      { grad:'linear-gradient(135deg, var(--orange), var(--yellow))', h:'280px', icon:'🔥' },
+      { grad:'linear-gradient(135deg, var(--purple), var(--pink))', h:'380px', icon:'👗' },
+      { grad:'linear-gradient(135deg, var(--cyan), var(--green))', h:'240px', icon:'✨' },
+      { grad:'linear-gradient(135deg, var(--red), var(--orange))', h:'360px', icon:'🎨' },
+      { grad:'linear-gradient(135deg, var(--yellow), var(--green))', h:'300px', icon:'👟' },
+      { grad:'linear-gradient(135deg, var(--pink), var(--red))', h:'260px', icon:'🧢' },
+      { grad:'linear-gradient(135deg, var(--purple), var(--cyan))', h:'400px', icon:'🎭' },
+      { grad:'linear-gradient(135deg, var(--orange), var(--pink))', h:'280px', icon:'👕' },
+      { grad:'linear-gradient(135deg, var(--green), var(--cyan))', h:'340px', icon:'🧥' },
+    ];
+
+    function renderGallery() {
+      const grid = document.getElementById('galleryGrid');
+      if (grid.children.length) return;
+      grid.innerHTML = galleryItems.map(item => `
+        <div class="gallery-item">
+          <div class="gallery-item-bg" style="background:${item.grad}; height:${item.h}; display:flex; align-items:center; justify-content:center; font-size:3rem;">${item.icon}</div>
+          <div class="gallery-hover">🔍</div>
+        </div>
+      `).join('');
+    }
+
+    /* ---- TABS ---- */
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + id).classList.add('active');
+    }
+
+    /* ---- NEWSLETTER ---- */
+    function handleNewsletter(e) {
+      e.preventDefault();
+      const input = e.target.querySelector('input');
+      // TODO: wire to Klaviyo API
+      alert('Thanks! You\'re on the list. Stay locked for drops.');
+      input.value = '';
+    }
+
+    /* ---- INIT ---- */
+    renderProducts('all');
+    renderGallery();
+  </script>
+</body>
+</html>
